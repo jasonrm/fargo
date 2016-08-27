@@ -1,5 +1,5 @@
 #!/bin/sh
-DEPS="libarchive git curl"
+DEPS="libarchive git curl openssh-client"
 BUILD_DEPS="asciidoc build-base libarchive-dev autoconf automake"
 apk add --update ${DEPS} ${BUILD_DEPS}
 
