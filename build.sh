@@ -1,6 +1,6 @@
 #!/bin/sh
-DEPS="libarchive git curl openssh-client"
-BUILD_DEPS="asciidoc build-base libarchive-dev autoconf automake"
+DEPS="libarchive git curl openssh-client ca-certificates"
+BUILD_DEPS="go asciidoc build-base libarchive-dev autoconf automake"
 apk add --update ${DEPS} ${BUILD_DEPS}
 
 # Build pixz
@@ -21,17 +21,28 @@ curl -L -O http://www.ivarch.com/programs/sources/pv-1.6.0.tar.gz \
     && make \
     && make install \
     && cd .. \
-    && rm -Rf pv-1.6.0
+    && rm -Rf /pv-1.6.0 /pv-1.6.0.tar.gz
+
+# I wouldn't know where to start describing how much I dislike the golang build process
+## Go build env
+mkdir -p /go/src /go/bin
+chmod -R 777 /go
+export GOPATH=/go
+export PATH=/go/bin:$PATH
 
 # Install gof3r
-curl -L https://github.com/rlmcpherson/s3gof3r/releases/download/v0.5.0/gof3r_0.5.0_linux_amd64.tar.gz \
-    | gzip -d \
-    | tar --extract
-mv gof3r_0.5.0_linux_amd64/gof3r /usr/local/bin/gof3r
-rmdir gof3r_0.5.0_linux_amd64
+go get github.com/rlmcpherson/s3gof3r
+cd /go/src/github.com/rlmcpherson/s3gof3r
+git remote add jasonrm https://github.com/jasonrm/s3gof3r
+cd gof3r
+git fetch --all
+git checkout jasonrm/expose-pathstyle
+CGO_ENABLED=0 GOOS=linux go build -a .
+cp gof3r /usr/local/bin/
 
 # Cleanup
 apk del ${BUILD_DEPS}
 rm -rf /var/cache/apk/*
+rm -rf /go
 
-rm $0
+rm /$0
